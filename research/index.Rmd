@@ -1,0 +1,18 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
+```
+
+### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/About_Me/) | [**RESEARCH**](http://mpark673.github.io/research/)
+
+___
+### Phage Research with Dr. Lauren Brooks
+___
+
+
+My research is focused on identifying and isolating Phages. Currently we are using *Salmonella* as our target species, with the ultimate goal to sequence and identify virulence factors present in isolated phages and propose a mechanism of infection.
+<br><br>
+Understanding phage infection mechanisms can help to develop synergistic phage-antibiotic treatment combos for severe antibiotic resistant bacterial infections. Catch up on modern phage therapy [here](https://academic.oup.com/emph/article/2018/1/60/4923328).

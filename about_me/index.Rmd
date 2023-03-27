@@ -6,12 +6,17 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
 ```
 
-# About Me
 
+
+___
+
+# About Me
+___
 ### Hi, my name is Mason Park, here you can find information about me and my [CV](http://mpark673.github.io/media/Mason_Park_CV.pdf)
 
-I am doing research with Dr. Lauren Brooks. I like phages and bacteria.
+I am doing research with Dr. Lauren Brooks, I like phages, and dogs are better than cats.
 
-```{r}
+```{r,out.height=144,out.width=144}
 knitr::include_graphics("../media/phage.png")
 ```
+
