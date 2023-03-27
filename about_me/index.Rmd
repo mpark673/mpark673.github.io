@@ -6,7 +6,7 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
 ```
 
-
+### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/about_me/) | [**RESEARCH**](http://mpark673.github.io/research/)
 
 ___
 
