@@ -1,0 +1,17 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
+```
+
+# About Me
+
+### Hi, my name is Mason Park, here you can find information about me and my [CV](http://github.io/media/Mason_Park_CV.pdf)
+
+I am doing research with Dr. Lauren Brooks. I like phages and bacteria.
+
+```{r}
+knitr::include_graphics("../media/phage.png")
+```
