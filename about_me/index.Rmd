@@ -1,5 +1,7 @@
 ---
-output: html_document
+output: 
+  html_document:
+pagetitle: AboutMe
 ---
 
 ```{r setup, include=FALSE}
