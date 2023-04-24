@@ -1,0 +1,127 @@
+---
+output: 
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: false
+pagetitle: Projects
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE,warning=FALSE)
+```
+
+### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/about_me/) | [**RESEARCH**](http://mpark673.github.io/research/) | [**PROJECTS**](http://mpark673.github.io/projects)
+
+___
+# Phage Library
+___
+### Intro and Background
+This project serves as a starting point for genome analysis on newly sequenced phage genomes. Identifying evolutionary relationships between phages and their hosts can help discover key genes or sequences that lead to evolutionary success. When analyzing new phage genomes, comparing against known phages that target the same or similar hosts can assist in identifying known virulence factors, integration segments, and host range. *Salmonella* was selected as the target bacterial host, as the various species of *Salmonella* cause 98 million infections per year [(CDC, 2022).](https://www.cdc.gov/salmonella/index.html) They are also the most common food-borne pathogen to humans, and with antibiotic resistant strains becoming increasingly difficult to treat, using phage therapy has become a popular alternative. 
+
+
+```{r, echo=FALSE,results='hide'}
+library(tidyverse)
+library(easystats)
+library(plotly)
+library(kableExtra)
+library(ShortRead)
+library(Biostrings)
+library(DECIPHER)
+library(ORFik)
+```
+
+### Data collection
+
+Phage genomes were pulled from NCBI - All genomes selected are listed below with accession numbers:
+
+
+```{r}
+path <- list.files(path = "../../Data/Phagefasta/sphagefastas",
+                   recursive = TRUE,
+                   pattern = ".gz",
+                   full.names = TRUE,
+                   ignore.case = TRUE)
+
+dna <- readDNAStringSet(path)
+
+rfa <- readFasta(path)
+
+ShortRead::id(rfa) %>% 
+  kable(col.names = "Genome Accession and Sequence Name") %>% 
+  kable_classic(lightable_options = 'hover') %>% 
+  scroll_box(height = "200px")
+```
+
+```{r,echo=FALSE, include=FALSE}
+dna1 <- OrientNucleotides(dna)
+names(dna1) <- names(dna1) %>% 
+  str_remove(", complete genome") %>% 
+  str_sub(30,)
+```
+### Synteny Alignment using a Database
+
+Genomes were oriented and sequence names were shortened to make the data easier to read. Each genome was then saved to a database. Using a database allows for long term storage of sequences along with a quick easy way to add and align more, new sequences. The database also allows for easy multiple genome alignment without needing a high power supercomputer. Synteny alignment tends to be less accurate, but for the purposes of finding which phages that are generally closely related it works well. Synteny alignment is then visualized to identify closely related sequences. 
+<br><br>
+This visualization shows 2 groups of closely related sequences:
+<br>
+Group 1: Maynard, Marshall, and Mutine
+<br>
+Group 2: Shivany, Stitch, Sw2, Seafire, and Sepoy
+
+
+```{r}
+db <- dbConnect(SQLite(), "../../Data/database/phagedb1.sqlite")
+
+synteny <- readRDS("../../Data/output/syntenyraw.RDS")
+pairs(synteny)
+```
+
+
+### Determining Significant Alignment
+
+The synteny was put through another alignment algorithm that assorted the sequences into individual alignments with each other. Each significant phage alignment and the length of the alignment can be seen below.
+<br><br>
+Each significant alignment was saved to FASTA format for closer comparison with newly sequenced phages. These alignments will serve as a starting point for identification and evolutionary analysis of novel phage genomes - Does the novel phage genome line up with a particular group of phages? Maybe only a single phage? 
+
+```{r}
+
+DNA <- readRDS("../../Data/output/syntenyalignment.RDS")
+test <- map(DNA,unlist) 
+alignment <- unlist(test)
+x <- names(alignment)
+y <- vector("numeric", 35L)
+for(i in seq_along(alignment)){
+    y[i] <- width(alignment[[i]][1])
+}
+df2 <- data.frame(x,y)
+df2 %>% 
+  filter(y >= 10000) %>% 
+  kable(align = "l",col.names = c("Phage Alignment","Alignment Length (bp)")) %>% 
+  kable_classic(lightable_options = 'hover') %>% 
+  scroll_box(height = "200px")
+
+```
+
+### Individual Phage Genome Analysis
+Once a novel phage genome has been identified, further analysis of the individual genome will be performed to find open reading frames (ORFs) that help identify genes. For demonstration purposes, the Maynard phage genome will be used as a proxy for the novel phage genome. ORF length was set at 300. This seems to be a tipping point in the algorithm as the minimum length ORF is 900 base pairs long, over triple the minimum allowed by the function. Lower length ORF sequences (100) result in over 1000 individual ORFs, while 300 minimum only finds 30 individual ORFs. Length of each ORF is listed below. 
+
+
+```{r}
+p1 <- dna1[1]
+orfs <- findORFs(p1,minimumLength = 300)
+gr <- unlist(orfs, use.names=TRUE)
+grange1 <- GRanges(seqnames = names(p1)[as.integer(names(gr))],
+        ranges(gr), strand = "+")
+names(grange1) <- paste0("ORF_", seq.int(length(gr)), "_", seqnames(grange1))
+orf_seqs <- getSeq(p1, grange1)
+df1 <- data.frame(width(orf_seqs),names(orf_seqs))
+names(df1) <- c("seq_length","orf")
+df1 %>% 
+  kable(align = "l",col.names = c("ORF length","ORF ID")) %>% 
+  kable_classic(lightable_options = 'hover') %>% 
+  scroll_box(height = "200px")
+```
+
+### Finishing up
+
+Each ORF can be translated to amino acids and saved in FASTA format for large scale comparison using BLAST. There are pipelines available to run BLAST in R, however they require high end computers with a lot of storage, which is not available on my current platform. This pipeline still manages to streamline a few important steps in the process of bioinformatics, and limiting the synteny database to known phages that target a specific host saves time and computational resources.

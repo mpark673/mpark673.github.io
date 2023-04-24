@@ -1,0 +1,22 @@
+---
+output: 
+  html_document:
+pagetitle: Projects
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
+```
+
+### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/about_me/) | [**RESEARCH**](http://mpark673.github.io/research/) | [**PROJECTS**](http://mpark673.github.io/projects)
+
+___
+# Projects
+___
+### Here you can find a list of completed projects with short descriptions.
+___
+
+
+### Phage Library
+<br>
+This project is a library compilation of 14 complete phage genomes that target various *Salmonella enterica* serotypes. This serves as a starting point for genome comparison with newly isolated and sequenced phages. 
+See the presentation [here.](http://mpark673.github.io/projects/phagelibrary)
