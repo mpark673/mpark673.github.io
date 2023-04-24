@@ -70,8 +70,6 @@ Group 2: Shivany, Stitch, Sw2, Seafire, and Sepoy
 
 
 ```{r}
-db <- dbConnect(SQLite(), "../../Data/database/phagedb1.sqlite")
-
 synteny <- readRDS("../../Data/output/syntenyraw.RDS")
 pairs(synteny)
 ```

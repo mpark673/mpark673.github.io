@@ -8,7 +8,7 @@ pagetitle: AboutMe
 knitr::opts_chunk$set(echo = FALSE,error=FALSE,message=FALSE)
 ```
 
-### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/about_me/) | [**RESEARCH**](http://mpark673.github.io/research/)
+### [**HOME**](http://mpark673.github.io/) | [**ABOUT ME**](http://mpark673.github.io/about_me/) | [**RESEARCH**](http://mpark673.github.io/research/) | [**PROJECTS**](http://mpark673.github.io/projects)
 
 ___
 
