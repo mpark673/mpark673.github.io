@@ -28,13 +28,14 @@ library(ShortRead)
 library(Biostrings)
 library(DECIPHER)
 library(ORFik)
+library(msaR)
 ```
 
 ### Data collection
 
-Phage genomes were pulled from NCBI - All genomes selected are listed below with accession numbers:
-
-
+Phage genomes were pulled from NCBI. All listed whole genome reads of phages with hosts in the *Salmonella* family of bacteria were selected. A total of 14 whole genome sequences were found and saved as "fna.gz" files for use.
+<br><br>
+*Table 1: List of all phage genomes and accession numbers*
 ```{r}
 path <- list.files(path = "../../Data/Phagefasta/sphagefastas",
                    recursive = TRUE,
@@ -62,12 +63,7 @@ names(dna1) <- names(dna1) %>%
 
 Genomes were oriented and sequence names were shortened to make the data easier to read. Each genome was then saved to a database. Using a database allows for long term storage of sequences along with a quick easy way to add and align more, new sequences. The database also allows for easy multiple genome alignment without needing a high power supercomputer. Synteny alignment tends to be less accurate, but for the purposes of finding which phages that are generally closely related it works well. Synteny alignment is then visualized to identify closely related sequences. 
 <br><br>
-This visualization shows 2 groups of closely related sequences:
-<br>
-Group 1: Maynard, Marshall, and Mutine
-<br>
-Group 2: Shivany, Stitch, Sw2, Seafire, and Sepoy
-
+*Graph 1: Synteny visualization for all 14 phage genomes.*
 
 ```{r}
 synteny <- readRDS("../../Data/output/syntenyraw.RDS")
@@ -77,10 +73,14 @@ pairs(synteny)
 
 ### Determining Significant Alignment
 
-The synteny was put through another alignment algorithm that assorted the sequences into individual alignments with each other. Each significant phage alignment and the length of the alignment can be seen below.
-<br><br>
-Each significant alignment was saved to FASTA format for closer comparison with newly sequenced phages. These alignments will serve as a starting point for identification and evolutionary analysis of novel phage genomes - Does the novel phage genome line up with a particular group of phages? Maybe only a single phage? 
+The synteny was put through another alignment algorithm that assorted the sequences into individual alignments with each other. Significant alignment was assigned as (alignment >= 5.0%), 100% being identical sequences and 0% sharing no genetic information. Each significant alignment was then saved to FASTA format for further analysis with NCBI BLAST programs and future comparison with newly sequenced phages.
+<br>
 
+#### Why whole genomes?
+
+These alignments will serve as a starting point for identification and evolutionary analysis of novel phage genomes. Unlike bacteria that have the highly conserved 16S ribosomal sequence, phages genomes are highly variable and do not often have highly conserved sequences [(Mavrich, 2019).](https://doi.org/10.1038/nmicrobiol.2017.112) Finding closely aligned phage genomes indicates similar host range, with higher percentage alignments indicating the similar phage lifestyles and methods of infection.
+<br><br>
+*Table 2: Length and name of each significant phage alignment >= 5%*
 ```{r}
 
 DNA <- readRDS("../../Data/output/syntenyalignment.RDS")
@@ -97,13 +97,27 @@ df2 %>%
   kable(align = "l",col.names = c("Phage Alignment","Alignment Length (bp)")) %>% 
   kable_classic(lightable_options = 'hover') %>% 
   scroll_box(height = "200px")
-
+```
+<br>
+*Table 3: 1000 base pair (bp) segments of each alignment: Sequences starting with the same number are aligned with each other.*
+```{r}
+filelist <- list.files(path = "../../Data/phages/alighnedfastas/",
+           recursive = TRUE,
+           pattern = ".fasta",
+           full.names = TRUE,
+           ignore.case = TRUE)
+aln <- readDNAStringSet(filelist)
+names(aln) <- str_remove(names(aln),"1.")
+aln1 <- Biostrings::subseq(aln,end=1000)
+names(aln1) <- paste0(rep(1:13,each=2),".",(names(aln)))
+msaR(aln1, menu=F, overviewbox = F)
 ```
 
+
 ### Individual Phage Genome Analysis
-Once a novel phage genome has been identified, further analysis of the individual genome will be performed to find open reading frames (ORFs) that help identify genes. For demonstration purposes, the Maynard phage genome will be used as a proxy for the novel phage genome. ORF length was set at 300. This seems to be a tipping point in the algorithm as the minimum length ORF is 900 base pairs long, over triple the minimum allowed by the function. Lower length ORF sequences (100) result in over 1000 individual ORFs, while 300 minimum only finds 30 individual ORFs. Length of each ORF is listed below. 
-
-
+Once a novel phage genome has been identified, further analysis of the individual genome will be performed to find open reading frames (ORFs) that help identify genes. For demonstration purposes, the Maynard phage genome will be used as a proxy for the novel phage genome. ORF length was set at 300 bp. This seems to be a tipping point in the algorithm as the shortest ORF returned was 960 bp long, over triple the minimum allowed by the function. It also only returned 30 ORFs, while lower length ORF algorithms (eg. 100 base pairs) can return over 1000 individual ORFs. Phage genome length seems to be associated with gene content. Short, 15 kbp phage genomes tend to have around 6-11 genes for their entire genome, while longer, 1.2 mbp genomes can have up to 1200 genes [(Chaitanya, 2019)](https://doi.org/10.1007/978-981-15-0702-1_1). Given the 150 kbp length of the Maynard genome, 30 genes seems to close to the expected amount for a similarly sized genome.
+<br><br>
+*Table 4: List of all open reading frames >= 300 base pairs in length*
 ```{r}
 p1 <- dna1[1]
 orfs <- findORFs(p1,minimumLength = 300)
@@ -119,7 +133,25 @@ df1 %>%
   kable_classic(lightable_options = 'hover') %>% 
   scroll_box(height = "200px")
 ```
+<br><br>
+*Table 5: First 960 base pairs of each open reading frame found in the Maynard genome.*
+```{r}
+frst <- Biostrings::subseq(orf_seqs,end=min(width(orf_seqs)))
+msaR(frst, menu=F, overviewbox = F)
+```
 
-### Finishing up
+### Conclusion
 
-Each ORF can be translated to amino acids and saved in FASTA format for large scale comparison using BLAST. There are pipelines available to run BLAST in R, however they require high end computers with a lot of storage, which is not available on my current platform. This pipeline still manages to streamline a few important steps in the process of bioinformatics, and limiting the synteny database to known phages that target a specific host saves time and computational resources.
+Each ORF was then translated to amino acids and saved in FASTA format for large scale comparison using BLAST. There are packages available to run BLAST in R, however they require high end computers with a lot of storage, which is not available on my current platform. This pipeline still manages to streamline a few important steps in the process of bioinformatics, and limiting the synteny database to known phages that target a shared host has the potential to save time and computational resources. Continuing this project forward, identifying ORFs from the 7 closely aligned genomes and comparing them against each other via BLAST would allow for a more focused approach to gene alignment between the different phage genomes. Ultimate goal continuing forward would be to incorporate a newly sequenced *Salmonella* phage genome into this analysis to discover if the isolated phage is novel, and if so if it is similar to any sequences already within this library. 
+
+### References
+
+CDC. (2021, November 23). 2019 antibiotic resistance threats report. Centers for Disease Control and 
+Prevention. Retrieved November 14, 2022, from https://www.cdc.gov/drugresistance/biggest-threats.html 
+
+CDC. (2022, November 10). Salmonella homepage. Centers for Disease Control and Prevention. Retrieved 
+November 15, 2022, from https://www.cdc.gov/salmonella/index.html 
+
+Chaitanya, K. V. (2019). Structure and Organization of Virus Genomes. Genome and Genomics, 1–30. https://doi.org/10.1007/978-981-15-0702-1_1
+
+Mavrich, T. N., & Hatfull, G. F. (2017). Bacteriophage evolution differs by host, lifestyle and genome. Nature Microbiology, 2, 17112. https://doi.org/10.1038/nmicrobiol.2017.112
